@@ -1,0 +1,142 @@
+<!-- app/templates/dashboard.html -->
+{% include "header.html" %}
+{% load static %}
+
+    <!-- Add Data -->
+    <div class="container mt-50">
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <button class="btn" data-toggle="modal" data-target="#assignForm">Assign Role</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee-Role Details Table-->
+    <div class="container">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th class="text-center" colspan="11">Allocated Roles</th>
+                </tr>
+                <tr>
+                    <th class="text-center">Employee ID</th>
+                    <th class="text-center">Employee Name</th>
+                    <th class="text-center">Gender</th>
+                    <th class="text-center">Role Name</th>
+                    <th class="text-center">Department</th>
+                    <th class="text-center">Contact</th>
+                    <th class="text-center">Assigned On</th>
+                    <th class="text-center">Assigned By</th>
+                    <th class="text-center">Last Updated</th>
+                    <th class="text-center">Update</th>
+                    <th class="text-center">Delete</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in dashboardEntries %}
+                    <tr>
+                        <td class="text-center">{{ entry.companyid }}</td>
+                        <td class="text-center">{{ entry.employeename }}</td>
+                        <td class="text-center">{{ entry.gender }}</td>
+                        <td class="text-center">{{ entry.rolename }}</td>
+                        <td class="text-center">{{ entry.department }}</td>
+                        <td class="text-center">{{ entry.contact }}</td>
+                        <td class="text-center">{{ entry.assignedon }}</td>
+                        <td class="text-center">{{ entry.assignedby }}</td>
+                        <td class="text-center">{{ entry.lastupdated }}</td>
+                        <td class="text-center">
+                            <a href="#" id="update-link" data-toggle="modal" data-target="#assignForm" data-entryid="{{ entry.id }}">Update</a>
+                        </td>
+                        <td class="text-center">
+                            <form method="post" action="{% url 'delete_employee_role_data' entry.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+        
+    <!-- Employee Role Assign Form -->
+    <div class="modal fade" id="assignForm" tabindex="-1" role="dialog" aria-labelledby="assignFormLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title" id="assignFormLabel">Assign Role</span>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="updateForm" method="post" action="{% url 'save_employee_role_data' %}">
+                        {% csrf_token %}
+                        <div class="form-group hidden">
+                            <label for="id">ID</label>
+                            <input type="text" class="form-control" id="id" name="id">
+                        </div>
+                        <div class="form-group">
+                            <label for="employeeid">Employee *</label>
+                            <select class="form-control" id="employeeid" name="employeeid" required>
+                                <option value="" selected disabled>Select Employee</option>
+                                {% for employee in employeeData %}
+                                    <option value="{{ employee.id }}">{{ employee.employeename }}_{{ employee.companyid }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="roleid">Role *</label>
+                            <select class="form-control" id="roleid" name="roleid" required>
+                                <option value="" selected disabled>Select a Role</option>
+                                {% for role in roleData %}
+                                    <option value="{{ role.id }}">{{ role.rolename }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="assignedon">Assigned On</label>
+                            <input type="date" class="form-control" id="assignedon" name="assignedon">
+                        </div>
+                        <div class="form-group">
+                            <label for="assignedby">Assigned By</label>
+                            <input type="text" class="form-control" id="assignedby" name="assignedby">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <span>* indicates required fields</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Handle the click event on the "Update" link
+        document.getElementById('update-link').addEventListener("click",function() {
+            // Get the entry ID from the data-entryid attribute
+            var entryId = $(this).data('entryid');
+            
+            // Fetch data for the selected entry using AJAX
+            $.ajax({
+                url: '/get_employee_role_data/' + entryId + '/',  // Create a new Django view to fetch data by entry ID
+                type: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    $('#updateForm #id').val(entryId);
+                    $('#updateForm #employeeid').val(data.employeeid);
+                    $('#updateForm #roleid').val(data.roleid);
+                    $('#updateForm #assignedon').val(data.assignedon);
+                    $('#updateForm #assignedby').val(data.assignedby);
+                },
+                error: function(error) {
+                    console.log('Error fetching data:', error);
+                }
+            });
+        });
+    </script>
+
+{% include "footer.html" %}

@@ -1,0 +1,131 @@
+<!-- app/templates/employee.html -->
+{% include "header.html" %}
+{% load static %}
+
+    <!-- Add Data -->
+    <div class="container mt-50">
+        <div class="row">
+            <div class="col-md-12 text-right">
+                <button class="btn" data-toggle="modal" data-target="#employeeform">Add Employee</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Employee Details Table-->
+    <div class="container">
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th class="text-center" colspan="7">Employees</th>
+                </tr>
+                <tr>
+                    <th class="text-center">Employee Id</th>
+                    <th class="text-center">Employee Name</th>
+                    <th class="text-center">Company Id</th>
+                    <th class="text-center">Gender</th>
+                    <th class="text-center">Contact</th>
+                    <th class="text-center">Email Id</th>
+                    <th class="text-center">Update</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for employee in employeeData %}
+                    <tr>
+                        <td>{{ employee.id }}</td>
+                        <td>{{ employee.employeename }}</td>
+                        <td>{{ employee.companyid }}</td>
+                        <td>{{ employee.gender }}</td>
+                        <td>{{ employee.contact }}</td>
+                        <td>{{ employee.email }}</td>
+                        <td class="text-center">
+                            <a href="#" class="update-employee" data-toggle="modal" data-target="#employeeform" data-entryid="{{ employee.id }}">Update</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    
+    <!-- Employee Creation Form -->
+    <div class="modal fade" id="employeeform" tabindex="-1" role="dialog" aria-labelledby="employeeformLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title" id="employeeformLabel">Add Employee</span>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" action="{% url 'save_employee_data' %}">
+                        {% csrf_token %}
+                        <div class="form-group hidden">
+                            <label for="id">ID</label>
+                            <input type="text" class="form-control" id="id" name="id">
+                        </div>
+                        <div class="form-group">
+                            <label for="employeename">Employee Name *</label>
+                            <input type="text" class="form-control" id="employeename" name="employeename" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="companyid">Company Id *</label>
+                            <input type="text" class="form-control" id="companyid" name="companyid" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="gender">Gender *</label>
+                            <select class="form-control" name="gender" id="gender">
+                                <option selected value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="contact">Phone</label>
+                            <input type="text" class="form-control" id="contact" name="contact">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="text" class="form-control" id="email" name="email">
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <span>* indicates required fields</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Handle the click event on the "Update" link
+        var updateButtons = document.getElementsByClassName('update-employee');
+        
+        for(let i=0;i<updateButtons.length;i++){
+            updateButtons[i].addEventListener("click",function() {
+                var entryId = $(this).data('entryid');
+                
+                // Fetch data for the selected entry using AJAX
+                $.ajax({
+                    url: '/get_employee_data/' + entryId + '/',
+                    type: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        $('#employeeform #id').val(entryId);
+                        $('#employeeform #employeename').val(data.employeename);
+                        $('#employeeform #companyid').val(data.companyid);
+                        $('#employeeform #gender').val(data.gender);
+                        $('#employeeform #contact').val(data.contact);
+                        $('#employeeform #email').val(data.email);
+                    },
+                    error: function(error) {
+                        console.log('Error fetching data:', error);
+                    }
+                });
+            });
+        }
+    </script>
+
+{% include "footer.html" %}
